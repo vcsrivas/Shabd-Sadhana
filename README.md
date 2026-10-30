@@ -3,7 +3,7 @@
 **Three words a day, easy to expert.**
 Developed by Dr. V C Srivastava.
 
-WordTrio is a mobile web app. Every day it shows three English words, one each from the **Easy**, **Moderately Difficult** and **Difficult** columns of `words.xlsx`. The words come from any of the topic tabs. Each word shows its meaning, part of speech, pronunciation and a usage example. These come from the free [Free Dictionary API](https://dictionaryapi.dev/), which uses Wiktionary data. Each word also has a button that opens its Oxford Learner's Dictionaries entry.
+WordTrio is a mobile web app. Every day it shows three English words, one each from the **Easy**, **Moderately Difficult** and **Difficult** columns of `words.xlsx`, plus one **idiom** and one **phrase** from the idioms and phrases tab. The words come from any of the topic tabs. Each one shows its meaning, part of speech and a usage example, and words also show their pronunciation. The app looks each item up in two free online dictionaries at the same time, [Free Dictionary](https://dictionaryapi.dev/) and [Wiktionary](https://en.wiktionary.org/), and shows the better entry: the one with a usage example and the fullest meanings. Cambridge Dictionary doesn't allow apps to read its pages, so every card has **Cambridge**, **Wiktionary** and **Oxford** buttons that open the entry on those websites.
 
 ## What's in this folder
 
@@ -44,7 +44,7 @@ If the link was opened from WhatsApp or email, it opens inside that app, where i
 
 ## Updating the word list
 
-1. Keep the same layout: one tab per topic, each with a header row containing **Easy**, **Moderately Difficult** and **Difficult**. You can add or remove tabs and words freely.
+1. Keep the same layout: one tab per topic, each with a header row containing **Easy**, **Moderately Difficult** and **Difficult**. Also keep one tab with a header row containing **Idioms** and **Phrases**. You can add or remove tabs, words, idioms and phrases freely.
 2. Save the file as **`words.xlsx`**. The name must be exactly this.
 3. In the GitHub repository, click **Add file → Upload files**, drop in the new `words.xlsx` and click **Commit changes**. It replaces the old one.
 4. Within a few minutes, every phone gets the new list the next time the app is opened.
@@ -56,11 +56,12 @@ You can also try out a different file on one phone only, from **Word list → Us
 ## How the three daily words are chosen
 
 - All the words in each column, across all tabs, are pooled and shuffled.
-- Day by day the app works through every possible Easy + Moderate + Difficult combination. With the current file that is over 30 billion trios. **No trio repeats until all of them have been shown**, and all three words change every day.
+- Day by day the app works through every possible Easy + Moderate + Difficult combination. With the current file that is billions of trios. **No trio repeats until all of them have been shown**, and all three words change every day.
+- The idioms and phrases are each shuffled once and shown one per day, so none repeats until all of them have been shown.
 - Each phone keeps its own history. You can see it under **History**.
 
 ## Notes
 
 - **Internet:** meanings need an internet connection. Once a word has been looked up, its meaning is saved on the phone.
-- **Missing meanings:** some rare words and multi-word phrases aren't in the Free Dictionary. For those, the app says so and the **Open in Oxford Learner's** button takes you to the Oxford entry.
-- **Credits:** meaning data is © Wiktionary contributors, shared under CC BY-SA, via the Free Dictionary API.
+- **Missing meanings:** if neither Free Dictionary nor Wiktionary has an entry, the card says so. Tap **Cambridge** to read it there.
+- **Credits:** meaning data is © Wiktionary contributors, shared under CC BY-SA, through Wiktionary and the Free Dictionary API.

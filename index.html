@@ -147,6 +147,12 @@ a{color:inherit}
 .install .ib{margin-left:auto;border:0;background:#fff;color:#1f1e40;font-weight:700;border-radius:999px;padding:9px 16px;font-size:13.5px;cursor:pointer;flex:none}
 .install .ix{border:0;background:none;color:#fff;opacity:.6;font-size:20px;cursor:pointer;padding:0 0 0 4px;flex:none}
 .howto{font-size:15px;line-height:1.6}.howto ol{padding-left:20px;margin-top:8px}.howto li{margin-bottom:6px}
+.h2{font-family:Fraunces,serif;font-size:19px;font-weight:700;margin:22px 4px 10px}
+.word.expr{font-size:27px;line-height:1.18;letter-spacing:-.3px}
+.kicon{font-size:17px;line-height:1;opacity:.9}
+.srcline{font-size:11.5px;color:var(--muted);padding:8px 0 2px}
+.wfoot.dicts{gap:6px}.wfoot.dicts .oxf{padding:10px 6px;font-size:12.5px}.wfoot.dicts .oxf.alt{background:#fff;color:#1d1c33;border:1px solid var(--line)}
+.stats{grid-template-columns:repeat(3,1fr)}
 .err{background:#fbe9ec;color:#8a1f35;border-radius:14px;padding:14px;font-size:14px;line-height:1.5;margin-bottom:12px}
 </style>
 </head>
@@ -171,11 +177,11 @@ a{color:inherit}
 
   <main>
     <section class="view active" id="v-today">
-      <div class="h">Today's three words</div>
+      <div class="h">Today's words</div>
       <div class="sub" id="todaySub"></div>
       <div class="install" id="installBar"><div><b>Install WordTrio</b><span>Add it to your home screen like an app</span></div><button class="ib" data-install="1">Install</button><button class="ix" id="installClose" aria-label="Dismiss">×</button></div>
       <div id="todayCards"><div class="loading"><span class="spin"></span>Loading word list…</div></div>
-      <div class="src">Meanings from the <a href="https://dictionaryapi.dev/" target="_blank" rel="noopener">Free Dictionary API</a> (Wiktionary, CC BY-SA)</div>
+      <div class="src">Meanings from <a href="https://dictionaryapi.dev/" target="_blank" rel="noopener">Free Dictionary</a> and <a href="https://en.wiktionary.org/" target="_blank" rel="noopener">Wiktionary</a> (CC BY-SA) · more on Cambridge Dictionary</div>
       <div class="credit">Developed by <b>Dr. V C Srivastava</b></div>
     </section>
 
@@ -203,7 +209,7 @@ a{color:inherit}
       </div>
       <div class="panel">
         <h3>Updating the words</h3>
-        <p>To update the list for everyone, replace <b>words.xlsx</b> in the GitHub repository with the new file (same name, same layout: one tab per topic with columns headed <b>Easy</b>, <b>Moderately Difficult</b> and <b>Difficult</b>). The app picks it up the next time it is opened. Words already shown will not be repeated.</p>
+        <p>To update the list for everyone, replace <b>words.xlsx</b> in the GitHub repository with the new file (same name, same layout: one tab per topic with columns headed <b>Easy</b>, <b>Moderately Difficult</b> and <b>Difficult</b>, plus a tab with columns headed <b>Idioms</b> and <b>Phrases</b>). The app picks it up the next time it is opened. Words already shown will not be repeated.</p>
         <label class="drop"><input type="file" id="file" accept=".xlsx,.xls" hidden><b>Use a different file on this phone</b><br>Only this phone will use it.</label>
         <button class="btn2" id="resetBtn" hidden>Go back to the GitHub list</button>
       </div>
@@ -218,7 +224,8 @@ a{color:inherit}
       </div>
       <div class="panel">
         <h3>About meanings</h3>
-        <p>Meanings, parts of speech, pronunciation and usage examples come from the free <a href="https://dictionaryapi.dev/" target="_blank" rel="noopener">Free Dictionary API</a>, which draws on Wiktionary. Some rare words and phrases are not in it, and not every meaning has a usage example. The <b>Oxford Learner's</b> button on every word opens its entry on oxfordlearnersdictionaries.com.</p>
+        <p>For every word, idiom and phrase, WordTrio looks up the meaning in two free online dictionaries at the same time: <a href="https://dictionaryapi.dev/" target="_blank" rel="noopener">Free Dictionary</a> and <a href="https://en.wiktionary.org/" target="_blank" rel="noopener">Wiktionary</a>. It shows whichever gives the better entry: one with a usage example and the fullest meanings. If that entry has no example but the other dictionary has one, the example is taken from there. Each card says which dictionary it used.</p>
+        <p style="margin-top:8px"><b>Cambridge Dictionary</b> doesn't allow apps to read its pages, so every card has a <b>Cambridge</b> button that opens the entry on its website, alongside <b>Wiktionary</b> and <b>Oxford</b>. Use these when a meaning is missing or you want more examples.</p>
       </div>
       <div class="credit">WordTrio · Developed by <b>Dr. V C Srivastava</b></div>
     </section>
@@ -243,24 +250,30 @@ const ls={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(_){return 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
 
 /* ---------- word list ---------- */
-let LIST=null; // {tabs, e:[[word,tabIdx]], m, d, version, src}
+let LIST=null; // {tabs, e:[[word,tabIdx]], m, d, i:[idiom], p:[phrase], version, ipVersion, src}
+const KIND=[{name:'Idiom of the day',short:'Idiom',color:'#5b4bb7'},{name:'Phrase of the day',short:'Phrase',color:'#1f7a8c'}];
+LV.push({k:'i',name:KIND[0].name,color:KIND[0].color,n:0},{k:'p',name:KIND[1].name,color:KIND[1].color,n:0});
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return (h>>>0).toString(36);}
+function uniq(arr){const s=new Set(),o=[];for(let x of arr||[]){x=String(x).trim().replace(/\s+/g,' ');const k=x.toLowerCase();if(x&&!s.has(k)){s.add(k);o.push(x);}}return o;}
 function buildList(raw,src){
   const out={tabs:raw.tabs.map(t=>t.n),e:[],m:[],d:[],src};
-  for(const lv of LV){const seen=new Set();
+  for(const lv of LV.slice(0,3)){const seen=new Set();
     raw.tabs.forEach((t,ti)=>(t[lv.k]||[]).forEach(w=>{w=String(w).trim();const key=w.toLowerCase();if(w&&!seen.has(key)){seen.add(key);out[lv.k].push([w,ti]);}}));}
-  out.version=hash(JSON.stringify(raw));return out;}
-function parseWorkbook(wb){const tabs=[];
+  out.i=uniq(raw.idioms);out.p=uniq(raw.phrases);
+  out.version=hash(JSON.stringify(raw.tabs));out.ipVersion=hash(JSON.stringify([out.i,out.p]));return out;}
+function parseWorkbook(wb){const tabs=[];let idioms=[],phrases=[];
   for(const name of wb.SheetNames){const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''});
-    let h=-1,ce=-1,cm=-1,cd=-1;
+    let h=-1,ce=-1,cm=-1,cd=-1,ci=-1,cp=-1;
     for(let r=0;r<Math.min(rows.length,20)&&h<0;r++){const row=rows[r].map(c=>String(c).trim().toLowerCase());
       const e=row.findIndex(c=>c==='easy'),m=row.findIndex(c=>c.includes('moderat')),d=row.findIndex(c=>c.includes('difficult')&&!c.includes('moderat'));
-      if(e>=0&&m>=0&&d>=0){h=r;ce=e;cm=m;cd=d;}}
+      if(e>=0&&m>=0&&d>=0){h=r;ce=e;cm=m;cd=d;break;}
+      const i=row.findIndex(c=>/^idioms?$/.test(c)),p=row.findIndex(c=>/^phrases?$/.test(c));
+      if(i>=0||p>=0){h=r;ci=i;cp=p;break;}}
     if(h<0)continue;
-    const col=c=>rows.slice(h+1).map(r=>String(r[c]??'').trim()).filter(Boolean);
-    const t={n:name.trim(),e:col(ce),m:col(cm),d:col(cd)};
-    if(t.e.length||t.m.length||t.d.length)tabs.push(t);}
-  return {tabs};}
+    const col=c=>c<0?[]:rows.slice(h+1).map(r=>String(r[c]??'').trim()).filter(Boolean);
+    if(ce>=0){const t={n:name.trim(),e:col(ce),m:col(cm),d:col(cd)};if(t.e.length||t.m.length||t.d.length)tabs.push(t);}
+    else{idioms=idioms.concat(col(ci));phrases=phrases.concat(col(cp));}}
+  return {tabs,idioms,phrases};}
 async function loadRepoList(){
   if(typeof XLSX==='undefined')throw new Error('Excel reader not loaded');
   const r=await fetch('words.xlsx',{cache:'no-cache'});if(!r.ok)throw new Error('words.xlsx not found ('+r.status+')');
@@ -274,8 +287,8 @@ async function loadRepoList(){
    and all three words change every day. */
 function rng(seed){let s=seed>>>0;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 const permCache={};
-function perm(k,len){const key=LIST.version+k;if(permCache[key])return permCache[key];
-  const p=[...Array(len).keys()],r=rng(parseInt(hash(LIST.version+'|'+k),36));
+function perm(k,len,ver){ver=ver||LIST.version;const key=ver+k+len;if(permCache[key])return permCache[key];
+  const p=[...Array(len).keys()],r=rng(parseInt(hash(ver+'|'+k),36));
   for(let i=len-1;i>0;i--){const j=Math.floor(r()*(i+1));[p[i],p[j]]=[p[j],p[i]];}return permCache[key]=p;}
 function trioAt(n){const E=LIST.e.length,M=LIST.m.length,D=LIST.d.length,N=E*M*D;n=((n%N)+N)%N;
   const i=n%E,j=Math.floor(n/E)%M,t=Math.floor(n/(E*M))%D;
@@ -294,14 +307,31 @@ function ensureToday(){const td=today();
   let n=Math.max(0,daysBetween(PROG.start,td))+PROG.extra,trio=trioAt(n),guard=0;
   while(seen.has(trioKey(trio))&&guard++<5000){PROG.extra++;n++;trio=trioAt(n);}
   PROG.days[td]=trio;ls.set('wt_prog',PROG);return trio;}
+/* Idiom and phrase of the day: each list is shuffled once and worked through in order,
+   so nothing repeats until every idiom (or phrase) has been shown. */
+function ensureIP(){const td=today();
+  if(!PROG.ip)PROG.ip={version:LIST.ipVersion,start:td,xi:0,xp:0,days:{}};
+  const ip=PROG.ip;if(ip.days[td])return ip.days[td];
+  if(ip.version!==LIST.ipVersion){ip.version=LIST.ipVersion;ip.start=td;ip.xi=0;ip.xp=0;}
+  const pick=(arr,k,xk,slot)=>{if(!arr.length)return '';const N=arr.length,P=perm(k,N,LIST.ipVersion);
+    const shown=new Set(Object.values(ip.days).map(v=>(v[slot]||'').toLowerCase()));const all=arr.every(x=>shown.has(x.toLowerCase()));
+    let n=Math.max(0,daysBetween(ip.start,td))+ip[xk],x=arr[P[n%N]],g=0;
+    while(!all&&shown.has(x.toLowerCase())&&g++<N){ip[xk]++;n++;x=arr[P[n%N]];}return x;};
+  ip.days[td]=[pick(LIST.i,'i','xi',0),pick(LIST.p,'p','xp',1)];ls.set('wt_prog',PROG);return ip.days[td];}
 
-/* ---------- Free Dictionary API ---------- */
-const API='https://api.dictionaryapi.dev/api/v2/entries/en/';
+/* ---------- meanings: best of Free Dictionary and Wiktionary ----------
+   Every word, idiom and phrase is looked up in BOTH free dictionaries at once.
+   The entry with a usage example and the fullest meanings is shown; if it has no
+   example but the other dictionary does, that example is used for "Usage".
+   Cambridge Dictionary has no open API, so it is offered as a link on every card. */
+const FD_API='https://api.dictionaryapi.dev/api/v2/entries/en/';
+const WK_API='https://en.wiktionary.org/api/rest_v1/page/definition/';
 const DICT={},inflight={};
-const dkey=w=>'wt_fd_'+w.toLowerCase();
+const dkey=w=>'wt_d2_'+w.toLowerCase();
 function cached(w){const k=dkey(w);if(DICT[k])return DICT[k];const v=ls.get(k);if(v)DICT[k]=v;return v;}
-function simplify(data){
-  const e={pron:'',audio:'',senses:[]};
+function strip(html){try{return new DOMParser().parseFromString(String(html||''),'text/html').body.textContent.replace(/\s+/g,' ').trim();}catch(_){return String(html||'').replace(/<[^>]+>/g,'').trim();}}
+function fdSimplify(data){
+  const e={src:'Free Dictionary',pron:'',audio:'',senses:[]};
   for(const ent of data){
     if(!e.pron)e.pron=ent.phonetic||((ent.phonetics||[]).find(p=>p.text)||{}).text||'';
     if(!e.audio)e.audio=((ent.phonetics||[]).find(p=>/\.mp3(\?|$)/i.test(p.audio||''))||{}).audio||'';
@@ -309,68 +339,111 @@ function simplify(data){
       let s=e.senses.find(x=>x.pos===m.partOfSpeech);
       if(!s){if(e.senses.length>=3)continue;s={pos:m.partOfSpeech||'',defs:[],syn:[]};e.senses.push(s);}
       for(const d of m.definitions||[]){if(s.defs.length<2&&d.definition)s.defs.push({d:d.definition,ex:d.example||''});}
-      // prefer a definition that has an example if the first two lack one
       if(!s.defs.some(x=>x.ex)){const withEx=(m.definitions||[]).find(d=>d.example);if(withEx&&s.defs.length)s.defs[s.defs.length-1]={d:withEx.definition,ex:withEx.example};}
       for(const x of [...(m.synonyms||[]),...(m.definitions||[]).flatMap(d=>d.synonyms||[])])if(s.syn.length<5&&!s.syn.includes(x))s.syn.push(x);
     }}
+  return e;}
+const FORM_OF=/^(plural of|alternative (form|spelling) of|obsolete (form|spelling) of|archaic (form|spelling) of|misspelling of|simple past|past participle|present participle|third-person)/i;
+function wkSimplify(data,title){
+  const e={src:'Wiktionary',title,pron:'',audio:'',senses:[]};
+  for(const ent of (data&&data.en)||[]){
+    const pos=String(ent.partOfSpeech||'').toLowerCase();
+    let defs=(ent.definitions||[]).map(d=>{
+      const ex=(d.parsedExamples||[]).map(x=>strip(x.example)).concat((d.examples||[]).map(strip)).find(x=>x&&x.length<260)||'';
+      return {d:strip(d.definition),ex};}).filter(d=>d.d);
+    const real=defs.filter(d=>!FORM_OF.test(d.d));if(real.length)defs=real;
+    if(!defs.length)continue;
+    let s=e.senses.find(x=>x.pos===pos);
+    if(!s){if(e.senses.length>=3)continue;s={pos,defs:[],syn:[]};e.senses.push(s);}
+    for(const d of defs){if(s.defs.length<2)s.defs.push(d);}
+    if(!s.defs.some(x=>x.ex)){const w=defs.find(d=>d.ex);if(w&&s.defs.length)s.defs[s.defs.length-1]=w;}
+  }
+  return e;}
+function titleVariants(w){const t=w.trim(),v=[t,t.toLowerCase(),
+  t.replace(/\b(your|his|her|their|my)\b/gi,"one's"),t.replace(/\bsomeone's\b/gi,"one's"),t.replace(/\bsomeone\b/gi,'somebody'),
+  t.replace(/^(a|an|the)\s+/i,''),t.replace(/^(be|get|go)\s+/i,'')];return [...new Set(v.filter(Boolean))];}
+async function fdFetch(w){const r=await fetch(FD_API+encodeURIComponent(w.toLowerCase()));
+  if(r.status===404)return null;if(!r.ok)throw new Error('fd '+r.status);const e=fdSimplify(await r.json());return e.senses.length?e:null;}
+async function wkFetch(w){
+  for(const t of titleVariants(w)){const r=await fetch(WK_API+encodeURIComponent(t.replace(/ /g,'_')));
+    if(r.status===404)continue;if(!r.ok)throw new Error('wk '+r.status);
+    const e=wkSimplify(await r.json(),t);if(e.senses.length)return e;}
+  return null;}
+function score(e,multi){if(!e)return -1;const defs=e.senses.reduce((a,s)=>a+s.defs.length,0),ex=e.senses.some(s=>s.defs.some(d=>d.ex));
+  return (ex?10:0)+Math.min(defs,4)+(multi?(e.src==='Wiktionary'?0.5:0):(e.src==='Free Dictionary'?0.5:0));}
+function choose(fd,wk,w){const multi=/\s/.test(w);
+  if(!fd&&!wk)return {notFound:true};
+  const best=score(fd,multi)>=score(wk,multi)?fd:wk,other=best===fd?wk:fd;
+  const e=JSON.parse(JSON.stringify(best));
+  if(fd){e.pron=e.pron||fd.pron;e.audio=e.audio||fd.audio;}
+  const hasEx=e.senses.some(s=>s.defs.some(d=>d.ex));
+  if(!hasEx&&other){const d=other.senses.flatMap(s=>s.defs).find(d=>d.ex);if(d){e.senses[0].defs.push({d:'',ex:d.ex});e.exSrc=other.src;}}
   return e;}
 async function lookup(w){
   const c=cached(w);if(c)return c;
   if(inflight[w])return inflight[w];
   return inflight[w]=(async()=>{
     try{
-      const r=await fetch(API+encodeURIComponent(w.toLowerCase()));
-      let e;
-      if(r.status===404)e={notFound:true};
-      else if(!r.ok)throw {code:'http',status:r.status};
-      else e=simplify(await r.json());
-      if(!e.notFound&&!e.senses.length)e={notFound:true};
+      const [a,b]=await Promise.allSettled([fdFetch(w),wkFetch(w)]);
+      if(a.status==='rejected'&&b.status==='rejected')throw new Error('offline');
+      const e=choose(a.status==='fulfilled'?a.value:null,b.status==='fulfilled'?b.value:null,w);
+      if(e.notFound&&(a.status==='rejected'||b.status==='rejected'))throw new Error('partial');
       DICT[dkey(w)]=e;ls.set(dkey(w),e);return e;
     }finally{delete inflight[w];}
   })();}
 
 /* ---------- rendering ---------- */
 const oxfordUrl=w=>'https://www.oxfordlearnersdictionaries.com/search/english/?q='+encodeURIComponent(w);
-function hl(text,word){const t=esc(text);const first=word.split(/\s+/)[0].toLowerCase();const stem=first.length>4?first.replace(/(e|y|es|s|ed|ing)$/,''):first;
+const cambridgeUrl=w=>'https://dictionary.cambridge.org/search/english/direct/?q='+encodeURIComponent(w);
+const wiktUrl=(w,e)=>'https://en.wiktionary.org/wiki/'+encodeURIComponent(((e&&e.title)||w).replace(/ /g,'_'));
+function hl(text,word){const t=esc(text);const first=word.split(/\s+/).find(x=>x.length>3)||word.split(/\s+/)[0];const f=first.toLowerCase();const stem=f.length>4?f.replace(/(e|y|es|s|ed|ing)$/,''):f;
   if(stem.length<3)return t;return t.replace(new RegExp('\\b('+stem.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\w-]*)','i'),'<mark>$1</mark>');}
 function bars(n){return `<span class="bars">${[1,2,3].map(i=>`<i class="${i<=n?'f':''}" style="height:${4+i*3}px"></i>`).join('')}</span>`;}
 function bodyHTML(e,w){
-  if(!e)return `<div class="loading" data-load="1"><span class="spin"></span>Looking up meaning…</div>`;
-  if(e.error)return `<div class="note">${esc(e.error)} You can still read it on Oxford Learner's below.<br><button class="retry" data-retry="${esc(w)}">Retry</button></div>`;
-  if(e.notFound)return `<div class="note">This word is not in the Free Dictionary yet. Tap <b>Open in Oxford Learner's</b> below to read its meaning.</div>`;
-  return e.senses.map(s=>{const ex=s.defs.find(d=>d.ex);
-    return `<div class="sense">${s.pos?`<span class="pos">${esc(s.pos)}</span>`:''}<div class="lbl">Meaning</div><ol class="defs">${s.defs.map(d=>`<li>${esc(d.d)}</li>`).join('')}</ol>${ex?`<div class="lbl" style="margin-top:10px">Usage</div><div class="ex">${hl(ex.ex,w)}</div>`:''}${s.syn.length?`<div class="lbl" style="margin-top:10px">Similar words</div><div class="syn">${s.syn.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}</div>`;}).join('');}
+  if(!e)return `<div class="loading" data-load="1"><span class="spin"></span>Looking up the meaning in Free Dictionary and Wiktionary…</div>`;
+  if(e.error)return `<div class="note">${esc(e.error)} You can still read it on Cambridge, Wiktionary or Oxford below.<br><button class="retry" data-retry="${esc(w)}">Retry</button></div>`;
+  if(e.notFound)return `<div class="note">Not found in Free Dictionary or Wiktionary. Tap <b>Cambridge</b> below to read its meaning and usage.</div>`;
+  const body=e.senses.map(s=>{const real=s.defs.filter(d=>d.d),ex=s.defs.find(d=>d.ex);
+    return `<div class="sense">${s.pos?`<span class="pos">${esc(s.pos)}</span>`:''}<div class="lbl">Meaning</div><ol class="defs">${real.map(d=>`<li>${esc(d.d)}</li>`).join('')}</ol>${ex?`<div class="lbl" style="margin-top:10px">Usage</div><div class="ex">${hl(ex.ex,w)}</div>`:''}${s.syn&&s.syn.length?`<div class="lbl" style="margin-top:10px">Similar words</div><div class="syn">${s.syn.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}</div>`;}).join('');
+  return body+`<div class="srcline">Meaning from ${esc(e.src)}${e.exSrc?` · usage from ${esc(e.exSrc)}`:''}</div>`;}
 function cardHTML(w,topic,lvIdx,id,e){const lv=LV[lvIdx];
   return `<div class="wcard" style="--lvl:${lv.color}" id="${esc(id)}" data-w="${esc(w)}" data-t="${esc(topic)}" data-lv="${lvIdx}">
-    <div class="whead"><div class="lvlrow">${bars(lv.n)} ${esc(lv.name)}<span class="topic">${esc(topic)}</span></div>
-      <div class="word">${esc(w)}</div><div class="pron">${e&&e.pron?esc(e.pron):'&nbsp;'}</div>
+    <div class="whead"><div class="lvlrow">${lv.n?bars(lv.n):'<span class="kicon">❝</span>'} ${esc(lv.name)}${topic?`<span class="topic">${esc(topic)}</span>`:''}</div>
+      <div class="word${lv.n?'':' expr'}">${esc(w)}</div><div class="pron">${e&&e.pron&&lv.n?esc(e.pron):'&nbsp;'}</div>
       <button class="speak" data-say="${esc(w)}" aria-label="Hear pronunciation"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button></div>
     <div class="wbody">${bodyHTML(e,w)}</div>
-    <div class="wfoot"><a class="oxf" href="${oxfordUrl(w)}" target="_blank" rel="noopener">Open in Oxford Learner's <small>↗</small></a></div></div>`;}
+    <div class="wfoot dicts"><a class="oxf" href="${cambridgeUrl(w)}" target="_blank" rel="noopener">Cambridge <small>↗</small></a><a class="oxf alt" href="${wiktUrl(w,e)}" target="_blank" rel="noopener">Wiktionary <small>↗</small></a><a class="oxf alt" href="${oxfordUrl(w)}" target="_blank" rel="noopener">Oxford <small>↗</small></a></div></div>`;}
 function fillCard(id){const el=document.getElementById(id);if(!el)return;const w=el.dataset.w,t=el.dataset.t,lv=+el.dataset.lv;
   if(cached(w)){el.outerHTML=cardHTML(w,t,lv,id,cached(w));return;}
   lookup(w).then(e=>{const x=document.getElementById(id);if(x)x.outerHTML=cardHTML(w,t,lv,id,e);})
-    .catch(()=>{const x=document.getElementById(id);if(x)x.outerHTML=cardHTML(w,t,lv,id,{error:navigator.onLine===false?'You seem to be offline.':'Could not reach the dictionary just now.'});});}
+    .catch(()=>{const x=document.getElementById(id);if(x)x.outerHTML=cardHTML(w,t,lv,id,{error:navigator.onLine===false?'You seem to be offline.':'Could not reach the dictionaries just now.'});});}
 function renderToday(){
-  if(!LIST)return;const trio=ensureToday();
-  $('#todaySub').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+' · one word from each level';
-  $('#todayCards').innerHTML=trio.map(([w,t],i)=>cardHTML(w,t,i,'t'+i,cached(w))).join('');
-  trio.forEach((_,i)=>fillCard('t'+i));}
-function renderPast(){const days=Object.keys(PROG?.days||{}).sort().reverse();
-  $('#pastList').innerHTML=days.length?days.map(d=>`<div class="day"><div class="dayh">${new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}${d===today()?' · Today':''}</div><div class="trio">${PROG.days[d].map(([w,t],i)=>`<button class="tw" style="background:${LV[i].color}" data-open="${esc(w)}" data-topic="${esc(t)}" data-lv="${i}">${esc(w)}</button>`).join('')}</div></div>`).join(''):'<div class="empty">No words yet.</div>';}
+  if(!LIST)return;const trio=ensureToday(),ip=ensureIP();
+  $('#todaySub').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+' · three words, an idiom and a phrase';
+  const items=trio.map(([w,t],i)=>[w,t,i]);
+  if(ip[0])items.push([ip[0],'',3]);if(ip[1])items.push([ip[1],'',4]);
+  $('#todayCards').innerHTML=items.map(([w,t,i],k)=>(k===3?'<div class="h2">Idiom and phrase of the day</div>':'')+cardHTML(w,t,i,'t'+k,cached(w))).join('');
+  items.forEach((_,k)=>fillCard('t'+k));}
+function renderPast(){const days=Object.keys(PROG?.days||{}).sort().reverse(),ipd=PROG?.ip?.days||{};
+  $('#pastList').innerHTML=days.length?days.map(d=>`<div class="day"><div class="dayh">${new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}${d===today()?' · Today':''}</div><div class="trio">${PROG.days[d].map(([w,t],i)=>`<button class="tw" style="background:${LV[i].color}" data-open="${esc(w)}" data-topic="${esc(t)}" data-lv="${i}">${esc(w)}</button>`).join('')}${(ipd[d]||[]).map((x,j)=>x?`<button class="tw" style="background:${LV[3+j].color}" data-open="${esc(x)}" data-topic="" data-lv="${3+j}">${esc(x)}</button>`:'').join('')}</div></div>`).join(''):'<div class="empty">No words yet.</div>';}
 function renderSearch(){if(!LIST)return;const q=$('#q').value.trim().toLowerCase();
-  if(!q){$('#qcount').textContent=`Search ${(LIST.e.length+LIST.m.length+LIST.d.length).toLocaleString()} words across ${LIST.tabs.length} topics.`;$('#results').innerHTML='';return;}
-  const res=[];LV.forEach((lv,i)=>LIST[lv.k].forEach(([w,ti])=>{const l=w.toLowerCase();const s=l===q?3:l.startsWith(q)?2:l.includes(q)?1:0;if(s)res.push([s,w,LIST.tabs[ti],i]);}));
+  const total=LIST.e.length+LIST.m.length+LIST.d.length;
+  if(!q){$('#qcount').textContent=`Search ${total.toLocaleString()} words, ${LIST.i.length} idioms and ${LIST.p.length} phrases.`;$('#results').innerHTML='';return;}
+  const res=[],sc=l=>l===q?3:l.startsWith(q)?2:l.includes(q)?1:0;
+  LV.slice(0,3).forEach((lv,i)=>LIST[lv.k].forEach(([w,ti])=>{const s=sc(w.toLowerCase());if(s)res.push([s,w,LIST.tabs[ti],i]);}));
+  LIST.i.forEach(w=>{const s=sc(w.toLowerCase());if(s)res.push([s,w,'',3]);});
+  LIST.p.forEach(w=>{const s=sc(w.toLowerCase());if(s)res.push([s,w,'',4]);});
   res.sort((a,b)=>b[0]-a[0]||a[1].localeCompare(b[1]));
   $('#qcount').textContent=`${res.length} match${res.length===1?'':'es'}${res.length>60?' · showing first 60':''}`;
-  $('#results').innerHTML=res.length?res.slice(0,60).map(([,w,t,i])=>`<button class="row" data-open="${esc(w)}" data-topic="${esc(t)}" data-lv="${i}"><span class="dot" style="background:${LV[i].color}"></span><span class="rinfo"><span class="rw">${esc(w)}</span><br><span class="rm">${esc(LV[i].name)} · ${esc(t)}</span></span><span style="color:var(--muted)">›</span></button>`).join(''):`<div class="empty">“${esc($('#q').value.trim())}” is not in the word list.</div>`;}
+  $('#results').innerHTML=res.length?res.slice(0,60).map(([,w,t,i])=>`<button class="row" data-open="${esc(w)}" data-topic="${esc(t)}" data-lv="${i}"><span class="dot" style="background:${LV[i].color}"></span><span class="rinfo"><span class="rw">${esc(w)}</span><br><span class="rm">${i<3?esc(LV[i].name)+' · '+esc(t):KIND[i-3].short}</span></span><span style="color:var(--muted)">›</span></button>`).join(''):`<div class="empty">“${esc($('#q').value.trim())}” is not in the list.</div>`;}
 function renderList(){if(!LIST)return;
   $('#listSrc').innerHTML=LIST.src==='repo'?'Using <b>words.xlsx</b> from the GitHub repository.':`This phone is using <b>${esc(LIST.src)}</b> instead of the GitHub list.`;
   $('#resetBtn').hidden=LIST.src==='repo';
-  $('#stats').innerHTML=LV.map(lv=>`<div class="stat" style="border-top:3px solid ${lv.color}"><b>${LIST[lv.k].length.toLocaleString()}</b><span>${esc(lv.name)}</span></div>`).join('');
+  $('#stats').innerHTML=LV.slice(0,3).map(lv=>`<div class="stat" style="border-top:3px solid ${lv.color}"><b>${LIST[lv.k].length.toLocaleString()}</b><span>${esc(lv.name)}</span></div>`).join('')
+    +`<div class="stat" style="border-top:3px solid ${KIND[0].color}"><b>${LIST.i.length.toLocaleString()}</b><span>Idioms</span></div><div class="stat" style="border-top:3px solid ${KIND[1].color}"><b>${LIST.p.length.toLocaleString()}</b><span>Phrases</span></div>`;
   $('#tabNames').innerHTML=LIST.tabs.map(t=>`<span>${esc(t)}</span>`).join('');
   const N=LIST.e.length*LIST.m.length*LIST.d.length,shown=Object.keys(PROG?.days||{}).length;
-  $('#progress').innerHTML=`<b>${shown}</b> day${shown===1?'':'s'} of words shown on this phone. The list makes <b>${N.toLocaleString()}</b> different trios, and none is repeated until all of them have been shown. All three words change every day.`;}
+  $('#progress').innerHTML=`<b>${shown}</b> day${shown===1?'':'s'} shown on this phone. The word list makes <b>${N.toLocaleString()}</b> different trios, and none is repeated until all have been shown. The ${LIST.i.length} idioms and ${LIST.p.length} phrases are each shown once before any of them comes back.`;}
 function openWord(w,t,i){$('#sheetBody').innerHTML=cardHTML(w,t,i,'s0',cached(w));$('#sheet').classList.add('open');fillCard('s0');}
 
 /* ---------- pronunciation ---------- */
