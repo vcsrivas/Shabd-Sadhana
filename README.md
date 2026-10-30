@@ -31,12 +31,16 @@ You only need a web browser. You don't need to install any software.
 
 ## Installing it on a phone
 
-Open the address on the phone, then:
+Open the address on the phone in **Chrome** (Android) or **Safari** (iPhone). Tap the **Install** button that WordTrio shows at the top of the Today screen, or under **Word list → Install the app**. You can also install it from the browser menu:
 
 - **Android (Chrome):** tap the **⋮** menu, then **Add to Home screen** (or **Install app**).
 - **iPhone (Safari):** tap the **Share** button, then **Add to Home Screen**.
 
-WordTrio then opens like a normal app, with its own icon and the start-up screen.
+WordTrio then opens like a normal app, with its own icon. The **Start learning** button appears only the first time. After that, the start-up screen with the developer's name shows for a moment and closes on its own.
+
+If the link was opened from WhatsApp or email, it opens inside that app, where installing isn't possible. Use the menu there to **Open in browser** first.
+
+**Pronunciation:** the speaker button plays the recorded pronunciation where the dictionary has one, and otherwise uses the phone's own text-to-speech voice. If you hear nothing, check the volume, and make sure text-to-speech is turned on in the phone's settings (Google or Samsung voice).
 
 ## Updating the word list
 
@@ -52,7 +56,7 @@ You can also try out a different file on one phone only, from **Word list → Us
 ## How the three daily words are chosen
 
 - All the words in each column, across all tabs, are pooled and shuffled.
-- Day by day the app works through every possible Easy + Moderate + Difficult combination. With the current file that's about 66 billion trios. **No trio repeats until all of them have been shown**, and all three words change every day.
+- Day by day the app works through every possible Easy + Moderate + Difficult combination. With the current file that is over 30 billion trios. **No trio repeats until all of them have been shown**, and all three words change every day.
 - Each phone keeps its own history. You can see it under **History**.
 
 ## Notes

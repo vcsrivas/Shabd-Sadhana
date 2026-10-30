@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="WordTrio">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
 <title>WordTrio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -139,6 +139,14 @@ a{color:inherit}
 .src{font-size:11px;color:var(--muted);text-align:center;margin:4px 0 10px;line-height:1.5}
 .src a{color:var(--muted)}
 .btn2{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600;cursor:pointer;margin-top:10px;color:var(--ink)}
+.speak.playing{background:rgba(255,255,255,.45);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.install{display:none;align-items:center;gap:12px;background:linear-gradient(135deg,#2e2c5e,#17162f);color:#fff;border-radius:18px;padding:14px 16px;margin-bottom:14px}
+.install.show{display:flex}
+.install b{font-size:14.5px}.install span{font-size:12.5px;opacity:.8;display:block;margin-top:2px}
+.install .ib{margin-left:auto;border:0;background:#fff;color:#1f1e40;font-weight:700;border-radius:999px;padding:9px 16px;font-size:13.5px;cursor:pointer;flex:none}
+.install .ix{border:0;background:none;color:#fff;opacity:.6;font-size:20px;cursor:pointer;padding:0 0 0 4px;flex:none}
+.howto{font-size:15px;line-height:1.6}.howto ol{padding-left:20px;margin-top:8px}.howto li{margin-bottom:6px}
 .err{background:#fbe9ec;color:#8a1f35;border-radius:14px;padding:14px;font-size:14px;line-height:1.5;margin-bottom:12px}
 </style>
 </head>
@@ -165,6 +173,7 @@ a{color:inherit}
     <section class="view active" id="v-today">
       <div class="h">Today's three words</div>
       <div class="sub" id="todaySub"></div>
+      <div class="install" id="installBar"><div><b>Install WordTrio</b><span>Add it to your home screen like an app</span></div><button class="ib" data-install="1">Install</button><button class="ix" id="installClose" aria-label="Dismiss">×</button></div>
       <div id="todayCards"><div class="loading"><span class="spin"></span>Loading word list…</div></div>
       <div class="src">Meanings from the <a href="https://dictionaryapi.dev/" target="_blank" rel="noopener">Free Dictionary API</a> (Wiktionary, CC BY-SA)</div>
       <div class="credit">Developed by <b>Dr. V C Srivastava</b></div>
@@ -197,6 +206,11 @@ a{color:inherit}
         <p>To update the list for everyone, replace <b>words.xlsx</b> in the GitHub repository with the new file (same name, same layout: one tab per topic with columns headed <b>Easy</b>, <b>Moderately Difficult</b> and <b>Difficult</b>). The app picks it up the next time it is opened. Words already shown will not be repeated.</p>
         <label class="drop"><input type="file" id="file" accept=".xlsx,.xls" hidden><b>Use a different file on this phone</b><br>Only this phone will use it.</label>
         <button class="btn2" id="resetBtn" hidden>Go back to the GitHub list</button>
+      </div>
+      <div class="panel" id="installPanel">
+        <h3>Install the app</h3>
+        <p id="installState">Add WordTrio to your home screen so it opens like an app.</p>
+        <button class="btn2" data-install="1">Install WordTrio</button>
       </div>
       <div class="panel">
         <h3>Progress</h3>
@@ -290,7 +304,7 @@ function simplify(data){
   const e={pron:'',audio:'',senses:[]};
   for(const ent of data){
     if(!e.pron)e.pron=ent.phonetic||((ent.phonetics||[]).find(p=>p.text)||{}).text||'';
-    if(!e.audio)e.audio=((ent.phonetics||[]).find(p=>p.audio)||{}).audio||'';
+    if(!e.audio)e.audio=((ent.phonetics||[]).find(p=>/\.mp3(\?|$)/i.test(p.audio||''))||{}).audio||'';
     for(const m of ent.meanings||[]){
       let s=e.senses.find(x=>x.pos===m.partOfSpeech);
       if(!s){if(e.senses.length>=3)continue;s={pos:m.partOfSpeech||'',defs:[],syn:[]};e.senses.push(s);}
@@ -359,15 +373,72 @@ function renderList(){if(!LIST)return;
   $('#progress').innerHTML=`<b>${shown}</b> day${shown===1?'':'s'} of words shown on this phone. The list makes <b>${N.toLocaleString()}</b> different trios, and none is repeated until all of them have been shown. All three words change every day.`;}
 function openWord(w,t,i){$('#sheetBody').innerHTML=cardHTML(w,t,i,'s0',cached(w));$('#sheet').classList.add('open');fillCard('s0');}
 
+/* ---------- pronunciation ---------- */
+let curAudio=null;
+function voice(){try{const vs=speechSynthesis.getVoices();return vs.find(v=>/^en[-_]IN/i.test(v.lang))||vs.find(v=>/^en[-_]GB/i.test(v.lang))||vs.find(v=>/^en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;}catch(_){return null;}}
+try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();}catch(_){}
+function speakTTS(w,btn){
+  if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined'){toast('This browser cannot speak words. Try Chrome or Safari.');return;}
+  const u=new SpeechSynthesisUtterance(w),v=voice();
+  if(v){u.voice=v;u.lang=v.lang;}else u.lang='en-US';
+  u.rate=.9;
+  u.onstart=()=>btn&&btn.classList.add('playing');
+  u.onend=u.onerror=()=>btn&&btn.classList.remove('playing');
+  // Speak straight away, inside the tap: phones block speech started after a delay.
+  try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();speechSynthesis.resume();speechSynthesis.speak(u);}
+  catch(_){toast('Could not play the word.');return;}
+  setTimeout(()=>{if(btn&&!btn.classList.contains('playing')&&!speechSynthesis.speaking)toast('No sound? Check the volume, or turn on text-to-speech (Google/Samsung voice) in your phone settings.');},2500);
+}
+function pronounce(w,btn){
+  if(curAudio){try{curAudio.pause();}catch(_){}curAudio=null;}
+  document.querySelectorAll('.speak.playing').forEach(b=>b.classList.remove('playing'));
+  const e=cached(w);let url=e&&e.audio;
+  // Only use recorded audio phones can play (mp3); otherwise use the phone's own voice.
+  if(!url||!/\.mp3(\?|$)/i.test(url)){speakTTS(w,btn);return;}
+  if(url.startsWith('//'))url='https:'+url;
+  const a=new Audio(url);curAudio=a;let fell=false;
+  const fallback=()=>{if(fell)return;fell=true;btn&&btn.classList.remove('playing');speakTTS(w,btn);};
+  a.onplaying=()=>btn&&btn.classList.add('playing');
+  a.onended=()=>btn&&btn.classList.remove('playing');
+  a.onerror=fallback;
+  const p=a.play();if(p&&p.catch)p.catch(fallback);
+}
+
+/* ---------- install ---------- */
+let deferredPrompt=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function updateInstallUI(){
+  const inst=isStandalone();
+  $('#installPanel').hidden=inst;
+  let dismissed=ls.get('wt_install_dismiss');
+  $('#installBar').classList.toggle('show',!inst&&!dismissed&&(!!deferredPrompt||isIOS()));
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;updateInstallUI();});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;toast('WordTrio is installed. Find it on your home screen.');updateInstallUI();});
+function showHowTo(){
+  const ios=isIOS(),inApp=/FBAN|FBAV|Instagram|WhatsApp|Line\/|wv\)/i.test(navigator.userAgent);
+  let steps;
+  if(inApp)steps=`<p>You've opened WordTrio inside another app. Open it in <b>${ios?'Safari':'Chrome'}</b> first: tap the <b>⋮</b> or <b>…</b> menu and choose <b>Open in browser</b>. Then tap Install again.</p>`;
+  else if(ios)steps=`<ol><li>Tap the <b>Share</b> button (square with an arrow) at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. WordTrio appears on your home screen.</li></ol><p>On iPhone this only works in <b>Safari</b>.</p>`;
+  else steps=`<ol><li>Tap the <b>⋮</b> menu at the top right of Chrome.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Tap <b>Install</b>. WordTrio appears on your home screen.</li></ol><p>If you don't see the option, open this page in <b>Chrome</b>.</p>`;
+  $('#sheetBody').innerHTML=`<div class="panel howto"><h3>Install WordTrio</h3>${steps}</div>`;$('#sheet').classList.add('open');
+}
+async function doInstall(){
+  if(isStandalone()){toast('WordTrio is already installed.');return;}
+  if(deferredPrompt){deferredPrompt.prompt();try{const r=await deferredPrompt.userChoice;if(r.outcome==='accepted')toast('Installing WordTrio…');}catch(_){}deferredPrompt=null;updateInstallUI();return;}
+  showHowTo();
+}
+
 /* ---------- events ---------- */
 document.addEventListener('click',ev=>{
   const sp=ev.target.closest('[data-say]');
-  if(sp){const w=sp.dataset.say,e=cached(w);
-    const speak=()=>{try{const u=new SpeechSynthesisUtterance(w);u.lang='en-GB';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(_){toast('Audio is not available here');}};
-    if(e&&e.audio){const a=new Audio(e.audio);a.play().catch(speak);}else speak();}
+  if(sp)pronounce(sp.dataset.say,sp);
+  if(ev.target.closest('[data-install]'))doInstall();
   const op=ev.target.closest('[data-open]');if(op)openWord(op.dataset.open,op.dataset.topic,+op.dataset.lv);
   const rt=ev.target.closest('[data-retry]');if(rt){const card=rt.closest('.wcard');DICT[dkey(rt.dataset.retry)]=null;card.querySelector('.wbody').innerHTML=bodyHTML(null);fillCard(card.id);}
 });
+$('#installClose').onclick=()=>{ls.set('wt_install_dismiss',1);updateInstallUI();};
 $('#closeSheet').onclick=()=>$('#sheet').classList.remove('open');
 $('#sheet').onclick=e=>{if(e.target.id==='sheet')$('#sheet').classList.remove('open');};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -386,7 +457,9 @@ $('#resetBtn').onclick=async()=>{ls.del('wt_local');try{LIST=buildList(await loa
 (async function init(){
   const d=new Date();$('#datebox').innerHTML=`<b>${d.getDate()}</b>${d.toLocaleDateString(undefined,{month:'short'})}`;
   let started=false;const start=()=>{if(started)return;started=true;$('#splash').classList.add('hide');};
-  $('#goBtn').onclick=start;setTimeout(start,3800);
+  $('#goBtn').onclick=start;
+  if(ls.get('wt_seen')){$('#goBtn').hidden=true;$('#splash').onclick=start;setTimeout(start,1600);}
+  else{$('#goBtn').addEventListener('click',()=>ls.set('wt_seen',1));}
   PROG=ls.get('wt_prog');
   try{
     const local=ls.get('wt_local');
@@ -396,7 +469,8 @@ $('#resetBtn').onclick=async()=>{ls.del('wt_local');try{LIST=buildList(await loa
     renderToday();
   }catch(err){$('#todayCards').innerHTML=`<div class="err">The word list could not be loaded (${esc(err.message||err)}). Check that <b>words.xlsx</b> is in the same folder as index.html in the repository, and that the phone is online.</div>`;}
 })();
-if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+updateInstallUI();
+if('serviceWorker' in navigator&&window.isSecureContext){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 </script>
 </body>
 </html>
