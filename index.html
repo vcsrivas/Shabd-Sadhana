@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f1e40">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
 <meta name="description" content="WordTrio: three English words a day, easy to expert. Developed by Dr. V C Srivastava.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="WordTrio">
@@ -125,6 +127,11 @@ nav button.on{color:var(--navy)}
 @media(max-width:479px){.toast{position:fixed}}
 .toast.show{opacity:1}
 
+:root{color-scheme:light only}
+html,body{background:#e8e2d4;color:#1d1c33}
+button,input,select,textarea{color:#1d1c33;-webkit-text-fill-color:currentColor}
+a{color:inherit}
+.app,main,.panel,.wcard,.wbody,.day,.row,.search input,.sheet-in{forced-color-adjust:none}
 .syn{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .syn span{font-size:12.5px;background:#f1ece1;padding:3px 9px;border-radius:999px}
 .defs{margin:0;padding-left:18px}
