@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "WordTrio",
+  "short_name": "WordTrio",
+  "description": "Three English words a day, easy to expert. Developed by Dr. V C Srivastava.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1f1e40",
+  "theme_color": "#1f1e40",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

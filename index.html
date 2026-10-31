@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f1e40">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
+<meta name="description" content="WordTrio: three expert English words a day. Developed by Dr. V C Srivastava.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WordTrio">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>WordTrio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f1e8;--card:#fffdf8;--ink:#1d1c33;--muted:#6d6879;--line:#e6dfd0;--navy:#1f1e40;
+  --easy:#2f8f6b;--mod:#c8871a;--hard:#c2415d;--lvl:var(--navy)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Inter,system-ui,sans-serif;background:#e8e2d4;color:var(--ink);display:flex;justify-content:center;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit}
+.app{width:100%;max-width:440px;min-height:100%;background:var(--bg);display:flex;flex-direction:column;position:relative}
+@media(min-width:480px){body{padding:24px 0}.app{height:880px;min-height:0;border-radius:34px;overflow:hidden;box-shadow:0 24px 70px rgba(29,28,51,.2)}}
+/* ---- App tag (top bar) ---- */
+.tagbar{background:linear-gradient(135deg,#2e2c5e,#17162f);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
+.tagbar::after{content:"";position:absolute;right:-40px;top:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(231,165,58,.25),transparent 70%)}
+.logo{width:42px;height:42px;flex:none;border-radius:12px;background:rgba(255,255,255,.08);display:grid;place-items:center}
+.tagtext{flex:1;min-width:0}
+.appname{font-family:Fraunces,serif;font-weight:700;font-size:23px;letter-spacing:-.3px;line-height:1}
+.appname em{font-style:normal;background:linear-gradient(90deg,#3fb48a,#e7a53a,#e0566f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tagline{font-size:11.5px;opacity:.78;margin-top:4px;letter-spacing:.2px}
+.datebox{text-align:right;font-size:11px;opacity:.85;line-height:1.35;flex:none}
+.datebox b{display:block;font-size:20px;font-family:Fraunces,serif;line-height:1}
+main{flex:1;overflow-y:auto;padding:16px 16px 110px}
+.view{display:none}.view.active{display:block}
+.h{font-family:Fraunces,serif;font-size:22px;font-weight:700;margin:4px 4px 2px}
+.sub{font-size:13px;color:var(--muted);margin:0 4px 14px;line-height:1.45}
+/* ---- word card ---- */
+.wcard{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;margin-bottom:14px;box-shadow:0 6px 22px rgba(29,28,51,.05)}
+.whead{padding:16px 18px 14px;color:#fff;background:linear-gradient(135deg,var(--lvl),color-mix(in srgb,var(--lvl) 65%,#17162f));position:relative}
+.lvlrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase}
+.bars{display:flex;gap:2px;align-items:flex-end}
+.bars i{display:block;width:4px;border-radius:2px;background:rgba(255,255,255,.35)}
+.bars i.f{background:#fff}
+.topic{margin-left:auto;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:999px;font-size:11px;letter-spacing:.3px;text-transform:none;font-weight:600}
+.word{font-family:Fraunces,serif;font-size:34px;font-weight:700;letter-spacing:-.6px;line-height:1.08;margin:10px 46px 4px 0;word-break:break-word}
+.pron{font-size:14px;opacity:.85}
+.speak{position:absolute;right:14px;bottom:14px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;display:grid;place-items:center}
+.wbody{padding:4px 18px 14px}
+.sense{padding:12px 0;border-bottom:1px solid var(--line)}
+.sense:last-of-type{border-bottom:0}
+.pos{display:inline-block;font-size:12px;font-weight:700;color:var(--lvl);background:color-mix(in srgb,var(--lvl) 11%,transparent);padding:3px 9px;border-radius:999px;margin-bottom:8px;font-style:italic}
+.def{font-size:16.5px;line-height:1.5}
+.ex{font-family:Fraunces,serif;font-style:italic;font-size:15.5px;line-height:1.5;color:#44405a;margin-top:8px;padding-left:11px;border-left:3px solid color-mix(in srgb,var(--lvl) 55%,transparent)}
+.ex mark{background:none;color:var(--lvl);font-weight:700;font-style:italic}
+.lbl{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:2px 0 4px}
+.wfoot{display:flex;gap:8px;padding:0 18px 16px}
+.oxf{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:#fff;background:#1d1c33;padding:11px 12px;border-radius:13px;font-size:13px;font-weight:600}
+.oxf small{opacity:.7;font-weight:500}
+.loading{padding:16px 0;color:var(--muted);font-size:14px;display:flex;gap:10px;align-items:center}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--lvl);border-radius:50%;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.note{font-size:13px;color:var(--muted);line-height:1.5;padding:12px 0}
+.retry{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 12px;font-size:13px;cursor:pointer;margin-top:6px}
+/* ---- lists ---- */
+.search{position:relative;margin:0 0 12px}
+.search input{width:100%;padding:14px 16px 14px 44px;border-radius:16px;border:1px solid var(--line);background:var(--card);font:16px Inter;color:var(--ink);outline:none}
+.search input:focus{border-color:var(--navy)}
+.search svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.row{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:15px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;color:inherit}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.rw{font-family:Fraunces,serif;font-size:17px;font-weight:700}
+.rm{font-size:12.5px;color:var(--muted)}
+.rinfo{flex:1;min-width:0}
+.day{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px}
+.dayh{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.trio{display:flex;gap:6px;flex-wrap:wrap}
+.tw{border:0;border-radius:11px;padding:8px 11px;font-family:Fraunces,serif;font-weight:700;font-size:15px;color:#fff;cursor:pointer}
+.empty{text-align:center;color:var(--muted);padding:36px 10px;font-size:14px;line-height:1.6}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px}
+.panel h3{font-family:Fraunces,serif;font-size:19px;margin-bottom:6px}
+.panel p{font-size:13.5px;color:var(--muted);line-height:1.55}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{border-radius:13px;padding:10px 6px;background:#f1ece1;text-align:center}
+.stat b{display:block;font-family:Fraunces,serif;font-size:21px}
+.stat span{font-size:10.5px;color:var(--muted)}
+.drop{display:block;border:2px dashed #cdc3ae;border-radius:16px;padding:20px;text-align:center;margin-top:14px;cursor:pointer;font-size:13.5px;color:var(--muted);line-height:1.5}
+.drop b{color:var(--navy);font-size:15px}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.tabs span{font-size:12px;background:#f1ece1;padding:4px 9px;border-radius:999px}
+.credit{text-align:center;font-size:12px;color:var(--muted);margin:18px 0 4px}
+.credit b{color:var(--ink)}
+/* ---- nav ---- */
+nav{position:absolute;bottom:0;left:0;right:0;background:rgba(255,253,248,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(9px + env(safe-area-inset-bottom));z-index:3}
+@media(max-width:479px){nav{position:fixed;max-width:440px;margin:0 auto}}
+nav button{flex:1;border:0;background:none;padding:5px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
+nav button.on{color:var(--navy)}
+/* ---- sheet ---- */
+.sheet{position:absolute;inset:0;background:rgba(23,22,47,.45);display:none;align-items:flex-end;z-index:6}
+@media(max-width:479px){.sheet{position:fixed}}
+.sheet.open{display:flex}
+.sheet-in{background:var(--bg);width:100%;max-height:90%;overflow-y:auto;border-radius:24px 24px 0 0;padding:12px 14px 26px;animation:up .22s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.grab{width:40px;height:4px;background:#cdc3ae;border-radius:4px;margin:0 auto 12px}
+.closeb{width:100%;border:0;background:var(--navy);color:#fff;border-radius:14px;padding:13px;font-size:14px;font-weight:600;cursor:pointer}
+/* ---- splash ---- */
+.splash{position:absolute;inset:0;z-index:20;background:radial-gradient(120% 80% at 80% 0%,#3a3775 0%,#1f1e40 45%,#121127 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 28px;transition:opacity .5s ease}
+@media(max-width:479px){.splash{position:fixed}}
+.splash.hide{opacity:0;pointer-events:none}
+.splash .big{width:110px;height:110px;border-radius:30px;background:rgba(255,255,255,.07);display:grid;place-items:center;margin-bottom:26px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 50px rgba(0,0,0,.35)}
+.splash .bigbars rect{transform-origin:bottom;animation:grow .7s cubic-bezier(.2,.8,.2,1) both}
+.splash .bigbars rect:nth-child(2){animation-delay:.12s}.splash .bigbars rect:nth-child(3){animation-delay:.24s}
+@keyframes grow{from{transform:scaleY(0)}}
+.splash h1{font-family:Fraunces,serif;font-size:44px;letter-spacing:-1px;line-height:1}
+.splash h1 em{font-style:normal;background:linear-gradient(90deg,#3fb48a,#e7a53a,#e0566f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.splash .tl{margin-top:10px;font-size:15px;opacity:.8}
+.splash .lv{display:flex;gap:8px;margin-top:20px;font-size:11.5px;font-weight:600}
+.splash .lv span{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.09)}
+.splash .dev{margin-top:48px;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;opacity:.65}
+.splash .devn{font-family:Fraunces,serif;font-size:24px;margin-top:6px}
+.splash .go{margin-top:38px;border:0;background:#fff;color:#1f1e40;font-weight:700;font-size:15px;padding:14px 38px;border-radius:999px;cursor:pointer}
+.toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:30;max-width:90%;text-align:center}
+@media(max-width:479px){.toast{position:fixed}}
+.toast.show{opacity:1}
+
+:root{color-scheme:light only}
+html,body{background:#e8e2d4;color:#1d1c33}
+button,input,select,textarea{color:#1d1c33;-webkit-text-fill-color:currentColor}
+a{color:inherit}
+.app,main,.panel,.wcard,.wbody,.day,.row,.search input,.sheet-in{forced-color-adjust:none}
+.syn{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.syn span{font-size:12.5px;background:#f1ece1;padding:3px 9px;border-radius:999px}
+.defs{margin:0;padding-left:18px}
+.defs li{font-size:16px;line-height:1.5;margin-bottom:4px}
+.src{font-size:11px;color:var(--muted);text-align:center;margin:4px 0 10px;line-height:1.5}
+.src a{color:var(--muted)}
+.btn2{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600;cursor:pointer;margin-top:10px;color:var(--ink)}
+.speak.playing{background:rgba(255,255,255,.45);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.install{display:none;align-items:center;gap:12px;background:linear-gradient(135deg,#2e2c5e,#17162f);color:#fff;border-radius:18px;padding:14px 16px;margin-bottom:14px}
+.install.show{display:flex}
+.install b{font-size:14.5px}.install span{font-size:12.5px;opacity:.8;display:block;margin-top:2px}
+.install .ib{margin-left:auto;border:0;background:#fff;color:#1f1e40;font-weight:700;border-radius:999px;padding:9px 16px;font-size:13.5px;cursor:pointer;flex:none}
+.install .ix{border:0;background:none;color:#fff;opacity:.6;font-size:20px;cursor:pointer;padding:0 0 0 4px;flex:none}
+.howto{font-size:15px;line-height:1.6}.howto ol{padding-left:20px;margin-top:8px}.howto li{margin-bottom:6px}
+.h2{font-family:Fraunces,serif;font-size:19px;font-weight:700;margin:22px 4px 10px}
+.word.expr{font-size:27px;line-height:1.18;letter-spacing:-.3px}
+.kicon{font-size:17px;line-height:1;opacity:.9}
+.srcline{font-size:11.5px;color:var(--muted);padding:8px 0 2px}
+.wfoot.dicts{gap:6px}.wfoot.dicts .oxf{padding:10px 6px;font-size:12.5px}.wfoot.dicts .oxf.alt{background:#fff;color:#1d1c33;border:1px solid var(--line)}
+.stats{grid-template-columns:repeat(3,1fr)}
+.word{margin-right:0!important}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tagrow span{background:rgba(255,255,255,.18);padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.olist{margin:0;padding-left:18px}.olist li{font-size:15px;line-height:1.5;margin-bottom:4px}
+.olist .op{font-style:italic;color:var(--lvl);font-weight:600;margin-right:4px}
+.syn.ant span{background:#fbe9ec}
+.etym{font-size:13.5px;color:#55506a;line-height:1.5}
+.lbl2{margin-top:12px}
+.ex.noex{font-family:inherit;font-style:normal;font-size:14px;color:#6b6680;border-left-color:#d8d3e2}
+.err{background:#fbe9ec;color:#8a1f35;border-radius:14px;padding:14px;font-size:14px;line-height:1.5;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="splash" id="splash">
+    <div class="big"><svg class="bigbars" width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="36" width="14" height="22" rx="5" fill="#3fb48a"/><rect x="25" y="22" width="14" height="36" rx="5" fill="#e7a53a"/><rect x="44" y="6" width="14" height="52" rx="5" fill="#e0566f"/></svg></div>
+    <h1>Word<em>Trio</em></h1>
+    <div class="tl">Three expert words a day</div>
+    <div class="lv"><span style="color:#7fe0bb">WordNet</span><span style="color:#f4c77d">Webster's</span></div>
+    <div class="dev">This app is developed by</div>
+    <div class="devn">Dr. V C Srivastava</div>
+    <button class="go" id="goBtn">Start learning</button>
+  </div>
+
+  <div class="tagbar">
+    <div class="logo"><svg width="26" height="26" viewBox="0 0 64 64"><rect x="6" y="36" width="14" height="22" rx="5" fill="#3fb48a"/><rect x="25" y="22" width="14" height="36" rx="5" fill="#e7a53a"/><rect x="44" y="6" width="14" height="52" rx="5" fill="#e0566f"/></svg></div>
+    <div class="tagtext"><div class="appname">Word<em>Trio</em></div><div class="tagline">Three expert words a day</div></div>
+    <div class="datebox" id="datebox"></div>
+  </div>
+
+  <main>
+    <section class="view active" id="v-today">
+      <div class="h">Today's three words</div>
+      <div class="sub" id="todaySub"></div>
+      <div class="install" id="installBar"><div><b>Install WordTrio</b><span>Add it to your home screen like an app</span></div><button class="ib" data-install="1">Install</button><button class="ix" id="installClose" aria-label="Dismiss">×</button></div>
+      <div id="todayCards"><div class="loading"><span class="spin"></span>Loading word list…</div></div>
+      <div class="src">Meanings from Open English WordNet (CC BY 4.0) and Webster's Revised Unabridged Dictionary (1913)</div>
+      <div class="credit">Developed by <b>Dr. V C Srivastava</b></div>
+    </section>
+
+    <section class="view" id="v-past">
+      <div class="h">Words so far</div>
+      <div class="sub">Every trio shown on this phone. Tap a word to read it again.</div>
+      <div id="pastList"></div>
+    </section>
+
+    <section class="view" id="v-search">
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search the word list…" autocomplete="off">
+      </div>
+      <div class="sub" id="qcount"></div>
+      <div id="results"></div>
+    </section>
+
+    <section class="view" id="v-list">
+      <div class="panel">
+        <h3>Word list</h3>
+        <p id="listSrc"></p>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="panel" id="installPanel">
+        <h3>Install the app</h3>
+        <p id="installState">Add WordTrio to your home screen so it opens like an app.</p>
+        <button class="btn2" data-install="1">Install WordTrio</button>
+      </div>
+      <div class="panel">
+        <h3>Progress</h3>
+        <p id="progress"></p>
+      </div>
+      <div class="panel">
+        <h3>About meanings</h3>
+        <p>Meanings, usage examples, synonyms and antonyms come from two dictionaries:</p>
+        <p style="margin-top:6px"><b>Open English WordNet</b>, built on Princeton WordNet 3.0. Licence: CC BY 4.0 and the WordNet licence.</p>
+        <p style="margin-top:6px"><b>Webster's Revised Unabridged Dictionary (1913)</b>, from Project Gutenberg. Public domain. Webster's entries are over a century old, so some spellings and examples are old-fashioned.</p>
+        <p style="margin-top:6px">The <b>Cambridge</b> and <b>Oxford</b> buttons on every word open its entry on those dictionaries' websites.</p>
+      </div>
+      <div class="credit">WordTrio · Developed by <b>Dr. V C Srivastava</b></div>
+    </section>
+  </main>
+
+  <nav>
+    <button class="on" data-v="today"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Today</button>
+    <button data-v="past"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>History</button>
+    <button data-v="search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</button>
+    <button data-v="list"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>Word list</button>
+  </nav>
+
+  <div class="sheet" id="sheet"><div class="sheet-in"><div class="grab"></div><div id="sheetBody"></div><button class="closeb" id="closeSheet">Close</button></div></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const SLOT=['#2f8f6b','#c8871a','#c2415d'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ls={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(_){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}},del(k){try{localStorage.removeItem(k)}catch(_){}}};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return (h>>>0).toString(36);}
+
+/* ---------- word list (from words.xlsx) ----------
+   Reads every tab whose header row has "Word" and "Meaning" columns. The tab name
+   tells the source: tabs with "Webster" in the name are Webster's 1913, others WordNet. */
+let LIST=null; // {all:[entry], map:{key:entry}, counts:{}, version}
+const COLS={word:/^word$/,pos:/^part of speech$/,pron:/^pronunciation/,syl:/^syllables/,meaning:/^meaning$/,usage:/^usage/,syn:/^synonyms?$/,ant:/^antonyms?$/,other:/^other meanings?$/,label:/^label$/,etym:/^etymology$/,tier:/^quality tier$/};
+function parseWorkbook(wb){
+  const all=[],counts={},seen=new Set();
+  for(const name of wb.SheetNames){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''});
+    let h=-1,idx={};
+    for(let r=0;r<Math.min(rows.length,15)&&h<0;r++){const row=rows[r].map(c=>String(c).trim().toLowerCase());
+      if(row.includes('word')&&row.includes('meaning')){h=r;for(const k in COLS)idx[k]=row.findIndex(c=>COLS[k].test(c));}}
+    if(h<0)continue;
+    const src=/webster/i.test(name)?'Webster':'WordNet';let n=0;
+    for(const r of rows.slice(h+1)){
+      const g=k=>idx[k]>=0?String(r[idx[k]]??'').trim():'';
+      const w=g('word'),m=g('meaning');if(!w||!m)continue;
+      const key=w.toLowerCase();if(seen.has(key))continue;seen.add(key);
+      all.push({w,key,src,pos:g('pos'),pron:g('pron')||g('syl'),m,u:g('usage'),syn:g('syn'),ant:g('ant'),o:g('other'),label:g('label'),etym:g('etym')});n++;}
+    counts[src]=(counts[src]||0)+n;}
+  return {all,counts};}
+function buildList(p){const map={};p.all.forEach(e=>map[e.key]=e);
+  return {...p,map,version:hash(p.all.length+'|'+p.all.map(e=>e.key).join(','))};}
+async function loadRepoList(){
+  if(typeof XLSX==='undefined')throw new Error('Excel reader not loaded');
+  const r=await fetch('words.xlsx',{cache:'no-cache'});if(!r.ok)throw new Error('words.xlsx not found ('+r.status+')');
+  const p=parseWorkbook(XLSX.read(await r.arrayBuffer(),{type:'array'}));
+  if(!p.all.length)throw new Error('No tabs with Word and Meaning columns');
+  return buildList(p);}
+
+/* ---------- three random words a day, no repeats ----------
+   All words from both tabs are shuffled once into a fixed random order. Each new day
+   takes the next three words in that order, skipping any already shown, so no word
+   comes back until every word in the list has been shown. */
+function rng(seed){let s=seed>>>0;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let ORDER=null;
+function order(){if(ORDER&&ORDER.v===LIST.version)return ORDER.p;
+  const N=LIST.all.length,p=new Uint32Array(N);for(let i=0;i<N;i++)p[i]=i;const r=rng(parseInt(LIST.version,36));
+  for(let i=N-1;i>0;i--){const j=Math.floor(r()*(i+1));const t=p[i];p[i]=p[j];p[j]=t;}ORDER={v:LIST.version,p};return p;}
+let PROG=null; // {version,pos,cycle:[keys shown this round],days:{date:[keys]}}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function ensureToday(){const td=today();
+  if(!PROG||!PROG.days)PROG={version:LIST.version,pos:0,cycle:[],days:{}};
+  if(PROG.days[td]&&PROG.days[td].every(k=>LIST.map[k]))return PROG.days[td];
+  if(PROG.version!==LIST.version){PROG.version=LIST.version;PROG.pos=0;}
+  const p=order(),N=p.length,shown=new Set(PROG.cycle),pick=[];
+  if(shown.size>=N||[...shown].filter(k=>LIST.map[k]).length>=N){PROG.cycle=[];shown.clear();}
+  let guard=0;
+  while(pick.length<Math.min(3,N)&&guard++<N*2){
+    const e=LIST.all[p[PROG.pos%N]];PROG.pos=(PROG.pos+1)%N;
+    if(shown.has(e.key)||pick.includes(e.key))continue;pick.push(e.key);
+    if(shown.size+pick.length>=N&&pick.length<3){PROG.cycle=[];shown.clear();}}
+  PROG.cycle.push(...pick);PROG.days[td]=pick;ls.set('wt3_prog',PROG);return pick;}
+
+/* ---------- rendering ---------- */
+const oxfordUrl=w=>'https://www.oxfordlearnersdictionaries.com/search/english/?q='+encodeURIComponent(w);
+const cambridgeUrl=w=>'https://dictionary.cambridge.org/search/english/direct/?q='+encodeURIComponent(w);
+const POSAB={nou:'noun',noun:'noun',adj:'adjective',ver:'verb',verb:'verb',adv:'adverb',pre:'preposition',con:'conjunction',int:'interjection',pro:'pronoun'};
+function hl(text,word){const t=esc(text);const f=word.toLowerCase();const stem=f.length>4?f.replace(/(e|y|es|s|ed|ing)$/,''):f;
+  if(stem.length<3)return t;return t.replace(new RegExp('\\b('+stem.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\w-]*)','i'),'<mark>$1</mark>');}
+const listOf=s=>String(s||'').split(/\s*[,;]\s*/).map(x=>x.trim()).filter(Boolean).slice(0,8);
+function others(s){return String(s||'').split(/\s*\|\s*/).map(x=>x.trim()).filter(Boolean).slice(0,4).map(x=>{
+  const m=x.match(/^\((\w+)\.?\)\s*(.*)$/);return m?{p:POSAB[m[1].toLowerCase()]||m[1],t:m[2].replace(/[;\]]+$/,'')}:{p:'',t:x.replace(/[;\]]+$/,'')};});}
+function cardHTML(key,slot,id){const e=LIST.map[key];if(!e)return '';const c=SLOT[slot%3];
+  const ot=others(e.o),sy=listOf(e.syn),an=listOf(e.ant);
+  return `<div class="wcard" style="--lvl:${c}" id="${esc(id)}">
+    <div class="whead"><div class="lvlrow">${slot<3?`Word ${slot+1} of 3`:'Word'}<span class="topic">${e.src==='Webster'?"Webster's 1913":'WordNet'}</span></div>
+      <div class="word">${esc(e.w)}</div><div class="pron">${e.pron?esc(e.pron):'&nbsp;'}</div>
+      ${e.label?`<div class="tagrow"><span>${esc(e.label)}</span></div>`:''}</div>
+    <div class="wbody"><div class="sense">${e.pos?`<span class="pos">${esc(e.pos)}</span>`:''}
+      <div class="lbl">Meaning</div><div class="def">${esc(e.m)}</div>
+      <div class="lbl lbl2">Usage</div>${e.u?`<div class="ex">${hl(e.u,e.w)}</div>`:'<div class="ex noex">No example available. Please refer Cambridge or Oxford link below.</div>'}
+      ${ot.length?`<div class="lbl lbl2">Other meanings</div><ol class="olist">${ot.map(o=>`<li>${o.p?`<span class="op">${esc(o.p)}</span>`:''}${esc(o.t)}</li>`).join('')}</ol>`:''}
+      ${sy.length?`<div class="lbl lbl2">Synonyms</div><div class="syn">${sy.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
+      ${an.length?`<div class="lbl lbl2">Antonyms</div><div class="syn ant">${an.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
+      ${e.etym?`<div class="lbl lbl2">Word origin</div><div class="etym">${esc(e.etym)}</div>`:''}
+    </div></div>
+    <div class="wfoot dicts"><a class="oxf" href="${cambridgeUrl(e.w)}" target="_blank" rel="noopener">Cambridge <small>↗</small></a><a class="oxf alt" href="${oxfordUrl(e.w)}" target="_blank" rel="noopener">Oxford <small>↗</small></a></div></div>`;}
+function renderToday(){if(!LIST)return;const keys=ensureToday();
+  $('#todaySub').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+' · three words chosen at random';
+  $('#todayCards').innerHTML=keys.map((k,i)=>cardHTML(k,i,'t'+i)).join('');}
+function renderPast(){const days=Object.keys(PROG?.days||{}).sort().reverse();
+  $('#pastList').innerHTML=days.length?days.map(d=>`<div class="day"><div class="dayh">${new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}${d===today()?' · Today':''}</div><div class="trio">${PROG.days[d].filter(k=>LIST&&LIST.map[k]).map((k,i)=>`<button class="tw" style="background:${SLOT[i%3]}" data-open="${esc(k)}">${esc(LIST.map[k].w)}</button>`).join('')}</div></div>`).join(''):'<div class="empty">No words yet.</div>';}
+function renderSearch(){if(!LIST)return;const q=$('#q').value.trim().toLowerCase();
+  if(!q){$('#qcount').textContent=`Search ${LIST.all.length.toLocaleString()} words.`;$('#results').innerHTML='';return;}
+  const res=[];for(const e of LIST.all){const l=e.key;const s=l===q?3:l.startsWith(q)?2:l.includes(q)?1:0;if(s)res.push([s,e]);}
+  res.sort((a,b)=>b[0]-a[0]||a[1].key.localeCompare(b[1].key));
+  $('#qcount').textContent=`${res.length.toLocaleString()} match${res.length===1?'':'es'}${res.length>60?' · showing first 60':''}`;
+  $('#results').innerHTML=res.length?res.slice(0,60).map(([,e])=>`<button class="row" data-open="${esc(e.key)}"><span class="dot" style="background:${e.src==='Webster'?SLOT[1]:SLOT[0]}"></span><span class="rinfo"><span class="rw">${esc(e.w)}</span><br><span class="rm">${esc(e.pos)} · ${e.src==='Webster'?"Webster's 1913":'WordNet'}</span></span><span style="color:var(--muted)">›</span></button>`).join(''):`<div class="empty">“${esc($('#q').value.trim())}” is not in the word list.</div>`;}
+function renderList(){if(!LIST)return;
+  $('#listSrc').innerHTML='Using <b>words.xlsx</b> from the GitHub repository.';
+  $('#stats').innerHTML=`<div class="stat" style="border-top:3px solid ${SLOT[0]}"><b>${(LIST.counts.WordNet||0).toLocaleString()}</b><span>WordNet</span></div><div class="stat" style="border-top:3px solid ${SLOT[1]}"><b>${(LIST.counts.Webster||0).toLocaleString()}</b><span>Webster's</span></div><div class="stat" style="border-top:3px solid ${SLOT[2]}"><b>${LIST.all.length.toLocaleString()}</b><span>Total</span></div>`;
+  const shown=new Set(PROG?.cycle||[]).size,days=Object.keys(PROG?.days||{}).length,left=Math.max(0,LIST.all.length-shown);
+  $('#progress').innerHTML=`<b>${days}</b> day${days===1?'':'s'} of words shown on this phone, <b>${shown.toLocaleString()}</b> words so far. No word is repeated until all ${LIST.all.length.toLocaleString()} have been shown: <b>${left.toLocaleString()}</b> to go (about ${Math.ceil(left/3).toLocaleString()} days).`;}
+function openWord(key){$('#sheetBody').innerHTML=cardHTML(key,9,'s0');$('#sheet').classList.add('open');}
+
+/* ---------- install ---------- */
+let deferredPrompt=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function updateInstallUI(){
+  const inst=isStandalone();
+  $('#installPanel').hidden=inst;
+  let dismissed=ls.get('wt_install_dismiss');
+  $('#installBar').classList.toggle('show',!inst&&!dismissed&&(!!deferredPrompt||isIOS()));
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;updateInstallUI();});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;toast('WordTrio is installed. Find it on your home screen.');updateInstallUI();});
+function showHowTo(){
+  const ios=isIOS(),inApp=/FBAN|FBAV|Instagram|WhatsApp|Line\/|wv\)/i.test(navigator.userAgent);
+  let steps;
+  if(inApp)steps=`<p>You've opened WordTrio inside another app. Open it in <b>${ios?'Safari':'Chrome'}</b> first: tap the <b>⋮</b> or <b>…</b> menu and choose <b>Open in browser</b>. Then tap Install again.</p>`;
+  else if(ios)steps=`<ol><li>Tap the <b>Share</b> button (square with an arrow) at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. WordTrio appears on your home screen.</li></ol><p>On iPhone this only works in <b>Safari</b>.</p>`;
+  else steps=`<ol><li>Tap the <b>⋮</b> menu at the top right of Chrome.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Tap <b>Install</b>. WordTrio appears on your home screen.</li></ol><p>If you don't see the option, open this page in <b>Chrome</b>.</p>`;
+  $('#sheetBody').innerHTML=`<div class="panel howto"><h3>Install WordTrio</h3>${steps}</div>`;$('#sheet').classList.add('open');
+}
+async function doInstall(){
+  if(isStandalone()){toast('WordTrio is already installed.');return;}
+  if(deferredPrompt){deferredPrompt.prompt();try{const r=await deferredPrompt.userChoice;if(r.outcome==='accepted')toast('Installing WordTrio…');}catch(_){}deferredPrompt=null;updateInstallUI();return;}
+  showHowTo();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',ev=>{
+  if(ev.target.closest('[data-install]'))doInstall();
+  const op=ev.target.closest('[data-open]');if(op)openWord(op.dataset.open);
+});
+$('#installClose').onclick=()=>{ls.set('wt_install_dismiss',1);updateInstallUI();};
+$('#closeSheet').onclick=()=>$('#sheet').classList.remove('open');
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')$('#sheet').classList.remove('open');};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='v-'+b.dataset.v));
+  ({today:renderToday,past:renderPast,search:renderSearch,list:renderList})[b.dataset.v]();$('main').scrollTop=0;});
+$('#q').oninput=renderSearch;
+/* ---------- start ---------- */
+(async function init(){
+  const d=new Date();$('#datebox').innerHTML=`<b>${d.getDate()}</b>${d.toLocaleDateString(undefined,{month:'short'})}`;
+  let started=false;const start=()=>{if(started)return;started=true;$('#splash').classList.add('hide');};
+  $('#goBtn').onclick=start;
+  if(ls.get('wt_seen')){$('#goBtn').hidden=true;$('#splash').onclick=start;setTimeout(start,1600);}
+  else{$('#goBtn').addEventListener('click',()=>ls.set('wt_seen',1));}
+  PROG=ls.get('wt3_prog');ls.del('wt_repo');ls.del('wt_local');
+  try{
+    LIST=await loadRepoList();
+    renderToday();
+  }catch(err){$('#todayCards').innerHTML=`<div class="err">The word list could not be loaded (${esc(err.message||err)}). Check that <b>words.xlsx</b> is in the same folder as index.html in the repository, and that the phone is online.</div>`;}
+})();
+updateInstallUI();
+if('serviceWorker' in navigator&&window.isSecureContext){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
