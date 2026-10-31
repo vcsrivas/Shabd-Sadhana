@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "WordTrio",
-  "short_name": "WordTrio",
-  "description": "Three English words a day, easy to expert. Developed by Dr. V C Srivastava.",
+  "name": "शब्द साधना",
+  "short_name": "शब्द साधना",
+  "description": "Five expert English words a day. Developed by Dr. V C Srivastava.",
   "lang": "en",
   "start_url": "./",
   "scope": "./",

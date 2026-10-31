@@ -1,18 +1,18 @@
-# WordTrio
+# शब्द साधना (Shabd Sadhana)
 
-**Three expert English words a day.**
+**Five expert English words a day.**
 Developed by **Dr. V C Srivastava**.
 
-WordTrio is a small web app that you can install on a phone. It runs on GitHub Pages at
+शब्द साधना (Shabd Sadhana, "practice of words") is a small web app that you can install on a phone. It runs on GitHub Pages at
 https://vcsrivas.github.io/wordtrio/
 
 ## What it does
 
-- Shows **three words a day**, picked at random from the whole list in `words.xlsx` (both the WordNet and the Webster tabs).
+- Shows **five words a day**, picked at random from the whole list in `words.xlsx` (both the WordNet and the Webster tabs).
 - No word is repeated until every word in the list has been shown.
-- Each word shows its part of speech, pronunciation or syllables, meaning, usage example, other meanings and synonyms. Webster entries also show a word origin where one is available.
+- Each word shows its part of speech, meaning, and, where available, a usage example, other meanings and synonyms. Tapping a synonym lets you look it up in Cambridge or Oxford. Webster entries also show a word origin where one is available.
 - Every word has **Cambridge** and **Oxford** buttons that open its entry on those dictionaries' websites.
-- **History** lists every trio shown on the phone. **Search** finds any word in the list.
+- **History** lists the words shown on the phone each day.
 - It can be installed to the home screen and opens like an app.
 
 ## Files
