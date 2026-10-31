@@ -10,7 +10,7 @@ https://vcsrivas.github.io/wordtrio/
 
 - Shows **three words a day**, picked at random from the whole list in `words.xlsx` (both the WordNet and the Webster tabs).
 - No word is repeated until every word in the list has been shown.
-- Each word shows its part of speech, pronunciation or syllables, meaning, usage example, other meanings, synonyms and antonyms. Webster entries also show a word origin where one is available.
+- Each word shows its part of speech, pronunciation or syllables, meaning, usage example, other meanings and synonyms. Webster entries also show a word origin where one is available.
 - Every word has **Cambridge** and **Oxford** buttons that open its entry on those dictionaries' websites.
 - **History** lists every trio shown on the phone. **Search** finds any word in the list.
 - It can be installed to the home screen and opens like an app.
@@ -27,13 +27,13 @@ https://vcsrivas.github.io/wordtrio/
 
 Replace `words.xlsx` in this repository with a new file of the same name. The app reads every tab whose header row has **Word** and **Meaning** columns. Tabs with "Webster" in their name are labelled Webster's; the others are labelled WordNet. Recognised columns are:
 
-Word, Part of Speech, Pronunciation (US) or Syllables & Stress, Meaning, Usage (example), Other Meanings, Synonyms, Antonyms, Label, Etymology.
+Word, Part of Speech, Pronunciation (US) or Syllables & Stress, Meaning, Usage (example), Other Meanings, Synonyms, Label, Etymology.
 
-Other Meanings are separated by ` | `, and each can start with a part of speech such as `(nou.)`, `(adj.)`, `(ver.)` or `(adv.)`. Synonyms and antonyms are separated by commas.
+Other Meanings are separated by ` | `, and each can start with a part of speech such as `(nou.)`, `(adj.)`, `(ver.)` or `(adv.)`. Synonyms are separated by commas.
 
 ## Acknowledgements
 
-The meanings, examples, synonyms and antonyms in `words.xlsx` come from two sources:
+The meanings, examples and synonyms in `words.xlsx` come from two sources:
 
 - **Open English WordNet** (https://github.com/globalwordnet/english-wordnet), based on **Princeton WordNet 3.0**.
   Princeton University "About WordNet." WordNet. Princeton University. 2010.

@@ -161,6 +161,7 @@ a{color:inherit}
 .syn.ant span{background:#fbe9ec}
 .etym{font-size:13.5px;color:#55506a;line-height:1.5}
 .lbl2{margin-top:12px}
+.none{font-size:14px;color:#6b6680}
 .ex.noex{font-family:inherit;font-style:normal;font-size:14px;color:#6b6680;border-left-color:#d8d3e2}
 .err{background:#fbe9ec;color:#8a1f35;border-radius:14px;padding:14px;font-size:14px;line-height:1.5;margin-bottom:12px}
 </style>
@@ -226,7 +227,7 @@ a{color:inherit}
       </div>
       <div class="panel">
         <h3>About meanings</h3>
-        <p>Meanings, usage examples, synonyms and antonyms come from two dictionaries:</p>
+        <p>Meanings, usage examples and synonyms come from two dictionaries:</p>
         <p style="margin-top:6px"><b>Open English WordNet</b>, built on Princeton WordNet 3.0. Licence: CC BY 4.0 and the WordNet licence.</p>
         <p style="margin-top:6px"><b>Webster's Revised Unabridged Dictionary (1913)</b>, from Project Gutenberg. Public domain. Webster's entries are over a century old, so some spellings and examples are old-fashioned.</p>
         <p style="margin-top:6px">The <b>Cambridge</b> and <b>Oxford</b> buttons on every word open its entry on those dictionaries' websites.</p>
@@ -318,7 +319,7 @@ const listOf=s=>String(s||'').split(/\s*[,;]\s*/).map(x=>x.trim()).filter(Boolea
 function others(s){return String(s||'').split(/\s*\|\s*/).map(x=>x.trim()).filter(Boolean).slice(0,4).map(x=>{
   const m=x.match(/^\((\w+)\.?\)\s*(.*)$/);return m?{p:POSAB[m[1].toLowerCase()]||m[1],t:m[2].replace(/[;\]]+$/,'')}:{p:'',t:x.replace(/[;\]]+$/,'')};});}
 function cardHTML(key,slot,id){const e=LIST.map[key];if(!e)return '';const c=SLOT[slot%3];
-  const ot=others(e.o),sy=listOf(e.syn),an=listOf(e.ant);
+  const ot=others(e.o),sy=listOf(e.syn);
   return `<div class="wcard" style="--lvl:${c}" id="${esc(id)}">
     <div class="whead"><div class="lvlrow">${slot<3?`Word ${slot+1} of 3`:'Word'}<span class="topic">${e.src==='Webster'?"Webster's 1913":'WordNet'}</span></div>
       <div class="word">${esc(e.w)}</div><div class="pron">${e.pron?esc(e.pron):'&nbsp;'}</div>
@@ -326,9 +327,9 @@ function cardHTML(key,slot,id){const e=LIST.map[key];if(!e)return '';const c=SLO
     <div class="wbody"><div class="sense">${e.pos?`<span class="pos">${esc(e.pos)}</span>`:''}
       <div class="lbl">Meaning</div><div class="def">${esc(e.m)}</div>
       <div class="lbl lbl2">Usage</div>${e.u?`<div class="ex">${hl(e.u,e.w)}</div>`:'<div class="ex noex">No example available. Please refer Cambridge or Oxford link below.</div>'}
-      ${ot.length?`<div class="lbl lbl2">Other meanings</div><ol class="olist">${ot.map(o=>`<li>${o.p?`<span class="op">${esc(o.p)}</span>`:''}${esc(o.t)}</li>`).join('')}</ol>`:''}
-      ${sy.length?`<div class="lbl lbl2">Synonyms</div><div class="syn">${sy.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
-      ${an.length?`<div class="lbl lbl2">Antonyms</div><div class="syn ant">${an.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
+      <div class="lbl lbl2">Other meanings</div>${ot.length?`<ol class="olist">${ot.map(o=>`<li>${o.p?`<span class="op">${esc(o.p)}</span>`:''}${esc(o.t)}</li>`).join('')}</ol>`:'<div class="none">No other meanings listed.</div>'}
+      <div class="lbl lbl2">Synonyms</div>${sy.length?`<div class="syn">${sy.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:'<div class="none">No synonyms listed.</div>'}
+      
       ${e.etym?`<div class="lbl lbl2">Word origin</div><div class="etym">${esc(e.etym)}</div>`:''}
     </div></div>
     <div class="wfoot dicts"><a class="oxf" href="${cambridgeUrl(e.w)}" target="_blank" rel="noopener">Cambridge <small>↗</small></a><a class="oxf alt" href="${oxfordUrl(e.w)}" target="_blank" rel="noopener">Oxford <small>↗</small></a></div></div>`;}
