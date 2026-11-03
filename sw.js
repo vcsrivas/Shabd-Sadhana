@@ -1,7 +1,7 @@
 // ShabdSadhana offline helper. Keeps the app opening when the phone is briefly offline.
 // It only handles the app's own files and the Excel reader; pronunciation audio,
 // dictionary lookups and fonts go straight to the network untouched.
-const CACHE = 'shabdsadhana-v15';
+const CACHE = 'shabdsadhana-v17';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });

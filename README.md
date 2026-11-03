@@ -6,11 +6,15 @@ Developed by **Dr. V C Srivastava**.
 शब्द साधना (Shabd Sadhana, "practice of words") is a small web app that you can install on a phone. It runs on GitHub Pages at
 https://vcsrivas.github.io/wordtrio/
 
+## Disclaimer
+
+This app has been made using an AI platform. Although much care has been taken for its correctness, it may still contain errors, so please use it with caution and check important words in a standard dictionary.
+
 ## What it does
 
-- Shows **five words a day**, picked at random from the expert-level words in `words.xlsx` (6,315 words from Princeton WordNet, with a frequency score from 0.5 to 1.3).
+- Shows **five words a day**, picked at random from the 8,000 expert-level words in `words.xlsx` (Princeton WordNet), balanced across nouns, adjectives, verbs and adverbs.
 - No word is repeated until every word in the list has been shown.
-- Each word shows its part of speech, meaning, and, where available, a usage example, other meanings and synonyms. Tapping a synonym lets you look it up in Cambridge or Oxford.
+- Each word shows its part of speech, meaning and a usage example, and, where available, other meanings and synonyms. Tapping a synonym lets you look it up in Cambridge or Oxford.
 - Every word has **Cambridge** and **Oxford** buttons that open its entry on those dictionaries' websites.
 - **History** lists the words shown on the phone each day.
 - It can be installed to the home screen and opens like an app.
@@ -33,7 +37,7 @@ Other Meanings are separated by ` | `, and each can start with a part of speech 
 
 ## Acknowledgements
 
-All meanings, usage examples, other meanings and synonyms in `words.xlsx` come from one source: **Princeton WordNet**, the lexical database of English created at Princeton University.
+All meanings, synonyms and other meanings in `words.xlsx` come from one source: **Princeton WordNet**, the lexical database of English created at Princeton University. Most usage examples (4,774) also come from WordNet. For the 3,226 words where WordNet gives no example, a simple example sentence was written for this app with the help of AI; these are marked "Written for this list" in the Example Source column of `words.xlsx`.
 
 > WordNet 3.0 Copyright 2006 by Princeton University. All rights reserved.
 > Used under the WordNet 3.0 licence (https://wordnet.princeton.edu/license-and-commercial-use).
