@@ -12,10 +12,10 @@ This app has been made using an AI platform. Although much care has been taken f
 
 ## What it does
 
-- Shows **five words a day**, picked at random from the 8,000 expert-level words in `words.xlsx` (Princeton WordNet), balanced across nouns, adjectives, verbs and adverbs.
+- Shows **five words a day**, picked at random from the 8,000 expert-level words in `words.xlsx` (Princeton WordNet), balanced across nouns, adjectives, verbs and adverbs. Archaic or obsolete words, old spellings and dialect words have been left out.
 - No word is repeated until every word in the list has been shown.
-- Each word shows its part of speech, meaning and a usage example, and, where available, other meanings and synonyms. Tapping a synonym lets you look it up in Cambridge or Oxford.
-- Every word has **Cambridge** and **Oxford** buttons that open its entry on those dictionaries' websites.
+- Each word shows its part of speech, meaning and a usage example, and, where available, other meanings and synonyms. Tapping a synonym lets you look it up in Cambridge, Oxford or Merriam-Webster.
+- Every word has **Cambridge**, **Oxford** and **Merriam-Webster** buttons that open its entry on those dictionaries' websites.
 - **History** lists the words shown on the phone each day.
 - It can be installed to the home screen and opens like an app.
 
@@ -37,7 +37,7 @@ Other Meanings are separated by ` | `, and each can start with a part of speech 
 
 ## Acknowledgements
 
-All meanings, synonyms and other meanings in `words.xlsx` come from one source: **Princeton WordNet**, the lexical database of English created at Princeton University. Most usage examples (4,774) also come from WordNet. For the 3,226 words where WordNet gives no example, a simple example sentence was written for this app with the help of AI; these are marked "Written for this list" in the Example Source column of `words.xlsx`.
+All meanings, synonyms and other meanings in `words.xlsx` come from one source: **Princeton WordNet**, the lexical database of English created at Princeton University. Most usage examples (4,599) also come from WordNet. For the 3,401 words where WordNet gives no example, a simple example sentence was written for this app with the help of AI; these are marked "Written for this list" in the Example Source column of `words.xlsx`.
 
 > WordNet 3.0 Copyright 2006 by Princeton University. All rights reserved.
 > Used under the WordNet 3.0 licence (https://wordnet.princeton.edu/license-and-commercial-use).
@@ -52,4 +52,4 @@ Word frequency scores, used only to choose expert-level words, come from the Ope
 - Miller, George A. (1995). "WordNet: A Lexical Database for English." *Communications of the ACM*, 38(11), 39–41.
 - Fellbaum, Christiane (ed.) (1998). *WordNet: An Electronic Lexical Database*. Cambridge, MA: MIT Press.
 
-Cambridge Dictionary and the Oxford Learner's Dictionaries are only linked to. None of their content is copied into this app.
+Cambridge Dictionary, the Oxford Learner's Dictionaries and Merriam-Webster are only linked to. None of their content is copied into this app.
